@@ -34,7 +34,7 @@ const HEADERS = {
 const SABIT_PAYLOAD_VERILERI = {
     "PointType": 1,
     "CardInfo": {
-        "ExpMonth": "11",
+        "ExpMonth": "12",
         "ExpYear": "2028",
         "CvcNumber": "000"
     }
