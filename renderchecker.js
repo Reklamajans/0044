@@ -1,36 +1,27 @@
 const express = require('express');
 const axios = require('axios');
-require('dotenv').config(); // Yerelde test ederken .env dosyasını yükler
+require('dotenv').config(); 
 
 const app = express();
-// Render, PORT'u otomatik ayarlar. Yerelde 3000 kullanır.
 const PORT = process.env.PORT || 3000; 
 
-// Express'in JSON formatındaki istek gövdesini (request body) işlemesini sağlar
 app.use(express.json());
 
 // =========================================================
 //                   API VE AYARLAR
 // =========================================================
 
-// KRİTİK: AUTH_TOKEN'i Render'da (veya yerelde) Ortam Değişkeni olarak tanımlamanız GEREKİR.
 const AUTH_TOKEN = process.env.AUTH_TOKEN; 
 const API_URL = "https://sfapi.pazaramatatil.com/card/point/v2";
 
-// Token Kontrolü (Başlatma öncesi)
 if (!AUTH_TOKEN || !AUTH_TOKEN.startsWith('Bearer ')) {
     console.error("HATA: AUTH_TOKEN ortam değişkeni tanımlı değil veya 'Bearer ' ile başlamıyor.");
-    // Render üzerinde bu hata uygulamanın başarısız olmasına neden olur.
-    // process.exit(1); 
 }
 
-
-// İletilen tüm Başlıklar (HEADERS) - Authorization başlığı dinamik olarak ayarlanacak.
 const HEADERS = {
     "Accept": "application/json, text/plain, */*",
     "Accept-Encoding": "gzip, deflate, br, zstd",
     "Accept-Language": "tr-TR,tr;q=0.8",
-    // Authorization token'ı her istekte güncellenecektir.
     "Channelcode": "12",
     "Content-Type": "application/json",
     "OrderType": "15",
@@ -40,7 +31,6 @@ const HEADERS = {
     "X-Channelcode": "12"
 };
 
-// İstek Gövdesinin Sabit Kısmı (Payload)
 const SABIT_PAYLOAD_VERILERI = {
     "PointType": 1,
     "CardInfo": {
@@ -58,7 +48,6 @@ async function apiIstegiAt(kartNumarasi) {
     const payload = JSON.parse(JSON.stringify(SABIT_PAYLOAD_VERILERI));
     payload.CardInfo.CardNumber = kartNumarasi;
 
-    // Authorization başlığını her istek için HEADER'lara ekleyelim
     const requestHeaders = {
         ...HEADERS,
         "Authorization": AUTH_TOKEN 
@@ -83,7 +72,6 @@ async function apiIstegiAt(kartNumarasi) {
                 kart_no: kartNumarasi,
                 puan_var: pointValue > 0,
                 puan_miktar: pointValueString,
-                // raw_response: responseData // Ham yanıtı göndermek isterseniz açın
             };
 
         } else {
@@ -109,37 +97,65 @@ async function apiIstegiAt(kartNumarasi) {
 }
 
 // =========================================================
-//                   EXPRESS API ENDPOINT
+//                   YENİ URL PARAMETRELİ GET ENDPOINT'İ
 // =========================================================
-
-// POST rotası: Kart numarasını al ve sorgulama yap
-app.post('/api/check', async (req, res) => {
+// KULLANIM: GET https://.../api/check-url?kart_no=1234...
+app.get('/api/check-url', async (req, res) => {
     
-    const kartNumarasi = req.body.kart_no;
+    // Kart numarasını URL'deki sorgu parametresinden (req.query) alıyoruz.
+    const kartNumarasi = req.query.kart_no; 
 
     if (!kartNumarasi || typeof kartNumarasi !== 'string' || kartNumarasi.length < 15) {
         return res.status(400).json({ 
             success: false, 
-            message: "Hata: Geçerli bir 'kart_no' alanı (en az 15 karakter) sağlanmalıdır." 
+            message: "Hata: Geçerli bir 'kart_no' URL parametresi sağlanmalıdır (örnek: ?kart_no=...).",
+            tip: "URL parametresi eksik veya hatalı."
         });
     }
 
-    console.log(`[LOG] Yeni istek alındı. Kart No: ${kartNumarasi.slice(0, 4)}...`);
+    console.log(`[LOG] Yeni GET isteği alındı. Kart No: ${kartNumarasi.slice(0, 4)}...`);
 
     const sonuc = await apiIstegiAt(kartNumarasi);
 
     if (sonuc.success) {
         res.status(200).json(sonuc);
     } else {
-        // Hatalı yanıtlar için uygun HTTP kodu (500 veya 400 serisi) dönülebilir.
-        // Genellikle 500 (Server Error) kullanılır.
         res.status(500).json(sonuc);
     }
 });
 
+
+// =========================================================
+//                   ESKİ GÜVENLİ POST ENDPOINT'İ (KORUNDU)
+// =========================================================
+// KULLANIM: POST https://.../api/check (Body: {"kart_no": "..."})
+app.post('/api/check', async (req, res) => {
+    
+    // Kart numarasını HTTP Body'den (req.body) alıyoruz.
+    const kartNumarasi = req.body.kart_no; 
+
+    if (!kartNumarasi || typeof kartNumarasi !== 'string' || kartNumarasi.length < 15) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Hata: Geçerli bir 'kart_no' body alanı sağlanmalıdır." 
+        });
+    }
+
+    console.log(`[LOG] Yeni POST isteği alındı. Kart No: ${kartNumarasi.slice(0, 4)}...`);
+
+    const sonuc = await apiIstegiAt(kartNumarasi);
+
+    if (sonuc.success) {
+        res.status(200).json(sonuc);
+    } else {
+        res.status(500).json(sonuc);
+    }
+});
+
+
 // Temel kontrol (Root) rotası
 app.get('/', (req, res) => {
-    res.send('API çalışıyor. Sorgulama için POST /api/check adresini kullanın.');
+    res.send('API çalışıyor. Sorgulama için POST /api/check veya GET /api/check-url?kart_no=... adreslerini kullanın.');
 });
 
 // Sunucuyu Başlat
