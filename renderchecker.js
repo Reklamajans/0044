@@ -11,7 +11,7 @@ app.use(express.json());
 //                   API VE AYARLAR
 // =========================================================
 
-const AUTH_TOKEN = process.env.AUTH_TOKEN; 
+const AUTH_TOKEN = "Bearer eyJhbGciOiJSUzUxMiIsImtpZCI6IjM2ODgyMyIsInR5cCI6ImF0K2p3dCJ9.eyJpc3MiOiJodHRwczovL2dpcmlzLnBhemFyYW1hLmNvbSIsIm5iZiI6MTc2Mjc2MTQ5OSwiaWF0IjoxNzYyNzYxNDk5LCJleHAiOjE3NjI3NjUwOTksInNjb3BlIjpbInBhemFyYW1hdGF0aWwuZnVsbGFjY2VzcyJdLCJjbGllbnRfaWQiOiJwYXphcmFtYXRhdGlsLnByb2R1Y3Rpb24ud2ViY2xpZW50LmNsaWVudF9jcmVkZW50aWFscyIsImNsaWVudF90eXBlIjoiNSIsImFjciI6InVybjpwYXphcmFtYTpsb2E6MSIsInJvbGUiOiJHdWVzdCIsInN1YiI6IjIyNjk2MzZjLTg0MDEtNGZkZS04YzY3LTgyMjlhZWZlNGRmMiIsImp0aSI6IkRDNjdGNjMxQUU3QUY0OTk1QjRGMDdDQzUwNEZEQzlGIn0.cT6xxs8iUfYFW3JCO-8hx5NUIlhgnHujT0ZNYXprdhcXb1L8NoBp9YT7RxQqrjhmXz4cYu9K2Wye9SyclVabWZfBBsdya8inSmEWe6xhpzlmYjTG-Mlb46R_GxJfJoy8nReBAJ9cd2FA4awZ-lVkVVTx1znr6vXxe-lIjrRzYtFA3-BeREc3OeTT6v4ZoWYfq38Hbehsm7URQKtctYoNqjDzFodmadA5MwoySAVLnpJTVxU1JNu6DBYyfiu0eGwQN5I4jOxC3VKF2223sylEYxYDgNujHb7fRo2KJIuVrYLaQwL-pUSOkbpRL8w85ep8dqRzKom9OmHl5vi-4yGNJw"; 
 const API_URL = "https://sfapi.pazaramatatil.com/card/point/v2";
 
 if (!AUTH_TOKEN || !AUTH_TOKEN.startsWith('Bearer ')) {
